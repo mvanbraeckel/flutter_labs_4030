@@ -32,7 +32,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
 
   // Attributes
-  String _screenText = "hehe";
 
   @override
   Widget build(BuildContext context) {
@@ -41,44 +40,113 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: SafeArea(
-        minimum: EdgeInsets.all(4.0),
         child: Center(
-          child: Column(
+          child: CalcBody(),
+        ),
+      ),
+    );
+  }
+}
+
+class CalcBody extends StatefulWidget {
+  const CalcBody({Key? key}) : super(key: key);
+
+  @override
+  State<CalcBody> createState() => _CalcBodyState();
+}
+
+class _CalcBodyState extends State<CalcBody> {
+
+  // Attributes
+  String _screenText = "0";
+  String num1 = "0";
+  String operator = "";
+  String num2 = "0";
+  bool firstDigit = true;
+  bool operationsDisabled = false;
+
+  void _selectButton(String btnText) {
+    if(btnText == "Clear") {
+      _screenText = "0";
+      num1 = "0";
+      operator = "";
+      num2 = "0";
+      firstDigit = true;
+      operationsDisabled = false;
+    } else if(btnText == "/" || btnText == "*" || btnText == "-" || btnText == "+") {
+      _screenText += btnText;
+      operator = btnText;
+      operationsDisabled = true;
+    } else if(btnText == "=") {
+      if(operator == "/") {
+        _screenText = "${double.parse(num1) / double.parse(num2)}";
+      } else if(operator == "*") {
+        _screenText = "${double.parse(num1) * double.parse(num2)}";
+      } else if(operator == "-") {
+        _screenText = "${double.parse(num1) - double.parse(num2)}";
+      } else if(operator == "+") {
+        _screenText = "${double.parse(num1) + double.parse(num2)}";
+      }
+      debugPrint("ans=$_screenText");
+
+      num1 = _screenText;
+      operator = "";
+      num2 = "0";
+      operationsDisabled = false;
+    } else {
+      if(firstDigit && operator == "") {
+        _screenText = btnText;
+        firstDigit = false;
+      } else {
+        _screenText += btnText;
+      }
+
+      if(!operationsDisabled) {
+        num1 += btnText;
+        debugPrint("num1=$num1");
+      } else {
+        num2 += btnText;
+        debugPrint("num2=$num2");
+      }
+    }
+
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Expanded(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            _screenText,
-                            style: const TextStyle(fontSize: 40),
-                          ),
-                        ),
-                      ),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      _screenText,
+                      style: const TextStyle(fontSize: 40),
                     ),
-                  ],
+                  ),
                 ),
               ),
-              _buildRow([const Button(flex: 3, btnText: "Clear"), const Button(flex: 1, btnText: "/")]),
-              _buildRow([const Button(flex: 1, btnText: "7"), const Button(flex: 1, btnText: "8"), const Button(flex: 1, btnText: "9"), const Button(flex: 1, btnText: "*")]),
-              _buildRow([const Button(flex: 1, btnText: "4"), const Button(flex: 1, btnText: "5"), const Button(flex: 1, btnText: "6"), const Button(flex: 1, btnText: "-")]),
-              _buildRow([const Button(flex: 1, btnText: "1"), const Button(flex: 1, btnText: "2"), const Button(flex: 1, btnText: "3"), const Button(flex: 1, btnText: "+")]),
-              _buildRow([const Button(flex: 1, btnText: "0"), const Button(flex: 3, btnText: "=")]),
             ],
           ),
         ),
-      ),
-
+        _buildRow([_buildCalculatorButton(3, "Clear"), _buildCalculatorButton(1, "/", opBtn: true)]),
+        _buildRow([_buildCalculatorButton(1, "7"), _buildCalculatorButton(1, "8"), _buildCalculatorButton(1, "9"), _buildCalculatorButton(1, "*", opBtn: true)]),
+        _buildRow([_buildCalculatorButton(1, "4"), _buildCalculatorButton(1, "5"), _buildCalculatorButton(1, "6"), _buildCalculatorButton(1, "-", opBtn: true)]),
+        _buildRow([_buildCalculatorButton(1, "1"), _buildCalculatorButton(1, "2"), _buildCalculatorButton(1, "3"), _buildCalculatorButton(1, "+", opBtn: true)]),
+        _buildRow([_buildCalculatorButton(1, "0"), _buildCalculatorButton(3, "=")]),
+      ],
     );
   }
 
-  Expanded _buildRow(List<Button> btnList) {
+  Expanded _buildRow(List<Flexible> btnList) {
     return Expanded(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -88,45 +156,23 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
-}
 
-class Button extends StatefulWidget {
-  final String btnText;
-  final int flex;
-  const Button({Key? key, required this.flex, required this.btnText}) : super(key: key);
-
-  @override
-  State<Button> createState() => _ButtonState();
-}
-
-class _ButtonState extends State<Button> {
-
-  // Attributes
-
-  // void _selectBox() {
-  //
-  //   setState(() {
-  //
-  //   });
-  // }
-
-  @override
-  Widget build(BuildContext context) {
-    return Flexible(
-      flex: widget.flex,
-      fit: FlexFit.tight,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SizedBox.expand(
-          child: ElevatedButton(
-            onPressed: () {},
-            child: Text(
-              widget.btnText,
-              style: const TextStyle(fontSize: 24),
-            ),
+  Flexible _buildCalculatorButton(int flex, String btnText, {bool opBtn = false}) => Flexible(
+    flex: flex,
+    fit: FlexFit.tight,
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: SizedBox.expand(
+        child: ElevatedButton(
+          onPressed: opBtn && operationsDisabled ? null : () {
+            _selectButton(btnText);
+          },
+          child: Text(
+            btnText,
+            style: const TextStyle(fontSize: 24),
           ),
         ),
       ),
-    );
-  }
+    )
+  );
 }
